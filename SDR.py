@@ -1,5 +1,9 @@
+from json.decoder import NaN
+
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.stats import false_discovery_control
+
 import SDR as SDR
 import Chirp as CP
 
@@ -42,6 +46,18 @@ class  SamplesAndTime:
         plt.show()
     def displaceTime(self,displacement):
         self.k = self.k+displacement
+
+
+
+
+    def getPreamble(self):
+        isCorrect = False
+        displacement = NaN
+        p = np.asarray(getattr(preamble, "samples", preamble))
+        c = np.correlate(self.samples, p, mode="full")
+
+        dt = self.time[1] - self.time[0]
+        lags = np.arange(-(len(p) - 1), len(self.samples)) * dt
 
     def graphCorrelationPreamble(self, preamble):
         p = np.asarray(getattr(preamble, "samples", preamble))
