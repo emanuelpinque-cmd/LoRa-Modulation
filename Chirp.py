@@ -4,9 +4,28 @@ import matplotlib as plt
 
 ### Make an array of chirp (same simbol)
 
-#def chirpSeq(N,SF,symbols,noise,up):
 
 
+def chirpSeq(SF, symbols, noise, up, startDelay, endDelay):
+    M = 2 ** SF * ChirpFunction.resolution  # samples per symbol
+
+    chunks = []
+    for s in symbols:
+        chirp = makeFastChirp(SF, s, noise, up)
+        chunks.append(chirp.samples)
+    samples = np.concatenate(chunks)
+
+    # Delays are given in symbols, converted to samples here
+    start = makeSilence(startDelay * M, noise)
+    end = makeSilence(endDelay * M, noise)
+    samples = np.concatenate([start, samples, end])
+
+    time = np.arange(len(samples)) / ChirpFunction.resolution
+    return SDR.SamplesAndTime(time, samples)
+
+
+def makeSilence(length, noise):
+    return noise * (np.random.randn(length) + 1j * np.random.randn(length))
 
 def chirpFactory(N, SF, symbol, noise, up):
     functions = []
@@ -21,7 +40,7 @@ def makeFastChirp(SF, symbol, noise, up):
     return SDR.SamplesAndTime(b.time, b.getSamples())
 
 class ChirpFunction:
-    resolution = 1
+    resolution = 100
     def __init__(self,SF:int,symbol:int,up):
         self.SF = SF
         self.up = up

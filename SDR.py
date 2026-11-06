@@ -28,19 +28,20 @@ class  SamplesAndTime:
         return np.argmax(np.abs(self.fft))
     def isSymbolCorrect(self,symbol):
         return symbol == self.estimateSymbol()
+
     def graphFrequency(self):
-        # Instantaneous frequency = derivative of the unwrapped phase / (2*pi)
-        phase = np.unwrap(np.angle(self.samples))
+        z = self.samples[1:] * np.conj(self.samples[:-1])
         dt = np.diff(self.time)
-        frequency = np.diff(phase) / (2 * np.pi * dt)
-        # diff reduces the length by 1, so use the midpoint of each time interval
+        frequency = np.angle(z) / (2 * np.pi * dt)
+        frequency[np.abs(z) == 0] = 0   # silence drawn as a flat line at 0
         time_mid = self.time[:-1] + dt / 2
         plt.plot(time_mid, frequency)
         plt.xlabel("Time")
         plt.ylabel("Frequency")
         plt.grid(True)
         plt.show()
-
+    def displaceTime(self,displacement):
+        self.k = self.k+displacement
 class Tester:
     def __init__(self, functions, sent_symbol, SF):
             self.functions = functions

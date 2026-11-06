@@ -37,10 +37,11 @@ def test4():
         noise = np.sqrt(1 / (2 * N * 10 ** (snr_db / 10)))
         functions = Chirp.chirpFactory(n, SF, symbol, noise, 1.0)
         ber_list.append(SDR.Tester(functions, symbol, SF).getBER())
-    plt.semilogy(snr_list, ber_list, "o-")
+    plt.plot(snr_list, ber_list)
     plt.xlabel("SNR (dB)")
     plt.ylabel("Error rate")
     plt.grid(True, which="both")
     plt.show()
 
-test3()
+seq = Chirp.chirpSeq(4, [10], 0.0, 1.0,2,2)
+seq.graphFrequency()
