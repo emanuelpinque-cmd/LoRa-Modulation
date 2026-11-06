@@ -1,0 +1,56 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import SDR as SDR
+import Chirp as CP
+
+
+class  SamplesAndTime:
+    def __init__(self,time,samples):
+        #init time & samples
+        self.time = time
+        self.samples = samples
+        #N the number of samples on a chirp is the SF
+        self.N = len(samples)
+        self.chirpDown()
+    def SamplesAndTime(self):
+        plt.plot(self.time, self.samples.real)
+        plt.show()
+    def graphReal(self):
+        plt.plot(self.time, self.samples.real)
+        plt.show()
+    def chirpDown(self):
+        d = self.samples * np.exp(-2j * np.pi * (self.time ** 2) / self.N)
+        self.fft = np.fft.fft(d) / np.sqrt(self.N)
+    def graphFFT(self):
+        plt.plot(self.time, abs(self.fft))
+        plt.show()
+    def estimateSymbol(self):
+        return np.argmax(np.abs(self.fft))
+    def isSymbolCorrect(self,symbol):
+        return symbol == self.estimateSymbol()
+    def graphFrequency(self):
+        # Instantaneous frequency = derivative of the unwrapped phase / (2*pi)
+        phase = np.unwrap(np.angle(self.samples))
+        dt = np.diff(self.time)
+        frequency = np.diff(phase) / (2 * np.pi * dt)
+        # diff reduces the length by 1, so use the midpoint of each time interval
+        time_mid = self.time[:-1] + dt / 2
+        plt.plot(time_mid, frequency)
+        plt.xlabel("Time")
+        plt.ylabel("Frequency")
+        plt.grid(True)
+        plt.show()
+
+class Tester:
+    def __init__(self, functions, sent_symbol, SF):
+            self.functions = functions
+            self.sent = sent_symbol
+            self.SF = SF
+
+    def getBER(self):
+        errors = 0
+        for f in self.functions:
+            f.chirpDown()
+            if not f.isSymbolCorrect(self.sent):
+                errors += 1
+        return errors / len(self.functions)
