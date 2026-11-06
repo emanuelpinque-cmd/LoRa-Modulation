@@ -43,5 +43,6 @@ def test4():
     plt.grid(True, which="both")
     plt.show()
 
-seq = Chirp.chirpSeq(4, [10], 0.0, 1.0,2,2)
-seq.graphFrequency()
+q = Chirp.chirpSeq(4,[0,0,0,0,0,1],0.0,1.0,0,0)
+p =Chirp.chirpSeq(4,[0,0,0],0.0,1.0,0,0)
+q.graphCorrelationPreamble(p)

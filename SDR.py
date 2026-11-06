@@ -42,6 +42,23 @@ class  SamplesAndTime:
         plt.show()
     def displaceTime(self,displacement):
         self.k = self.k+displacement
+
+    def graphCorrelationPreamble(self, preamble):
+        p = np.asarray(getattr(preamble, "samples", preamble))
+        c = np.correlate(self.samples, p, mode="full")
+
+        dt = self.time[1] - self.time[0]
+        lags = np.arange(-(len(p) - 1), len(self.samples)) * dt
+
+        idx = np.argmax(np.abs(c))
+        print(f"Máximo: {np.abs(c)[idx]:.2f} en desfase {lags[idx]:.2f}")
+
+        plt.plot(lags, np.abs(c))
+        plt.xlabel("desfase")
+        plt.ylabel("|correlación|")
+        plt.grid(True)
+        plt.show()
+        return lags, c
 class Tester:
     def __init__(self, functions, sent_symbol, SF):
             self.functions = functions

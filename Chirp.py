@@ -5,7 +5,6 @@ import matplotlib as plt
 ### Make an array of chirp (same simbol)
 
 
-
 def chirpSeq(SF, symbols, noise, up, startDelay, endDelay):
     M = 2 ** SF * ChirpFunction.resolution  # samples per symbol
 
@@ -40,7 +39,7 @@ def makeFastChirp(SF, symbol, noise, up):
     return SDR.SamplesAndTime(b.time, b.getSamples())
 
 class ChirpFunction:
-    resolution = 100
+    resolution = 1
     def __init__(self,SF:int,symbol:int,up):
         self.SF = SF
         self.up = up
