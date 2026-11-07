@@ -43,6 +43,12 @@ def test4():
     plt.grid(True, which="both")
     plt.show()
 
-q = Chirp.chirpSeq(4,[0,0,0,0,0,1],0.0,1.0,0,0)
+q = Chirp.chirpSeq(4,[0,0,0,0],0.0,1.0,0,0)
 p =Chirp.chirpSeq(4,[0,0,0],0.0,1.0,0,0)
+(iscorrect,displace)= q.getPreamble(p,3)
 q.graphCorrelationPreamble(p)
+if iscorrect:
+    print("Correct displace:")
+    print(displace)
+else:
+    print("Incorrect")

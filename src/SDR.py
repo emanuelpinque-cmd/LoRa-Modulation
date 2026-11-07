@@ -26,7 +26,7 @@ class  SamplesAndTime:
         d = self.samples * np.exp(-2j * np.pi * (self.time ** 2) / self.N)
         self.fft = np.fft.fft(d) / np.sqrt(self.N)
     def graphFFT(self):
-        plt.plot(self.time, abs(self.fft))
+        plt.plot(self.time, abs((self.fft)))
         plt.show()
     def estimateSymbol(self):
         return np.argmax(np.abs(self.fft))
@@ -50,14 +50,23 @@ class  SamplesAndTime:
 
 
 
-    def getPreamble(self):
-        isCorrect = False
+    def getPreamble(self,preamble,preamblelen):
+        iscorrect = False
         displacement = NaN
         p = np.asarray(getattr(preamble, "samples", preamble))
         c = np.correlate(self.samples, p, mode="full")
 
         dt = self.time[1] - self.time[0]
         lags = np.arange(-(len(p) - 1), len(self.samples)) * dt
+
+        amp = np.max(c)
+        if amp +0.1 > preamblelen:
+            displacement = np.argmax(lags)
+            idx = np.argmax(c)
+            displacement = lags[idx]
+            iscorrect = True
+        return iscorrect, displacement
+
 
     def graphCorrelationPreamble(self, preamble):
         p = np.asarray(getattr(preamble, "samples", preamble))
