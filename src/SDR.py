@@ -4,8 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import false_discovery_control
 
-import SDR as SDR
-import Chirp as CP
+
 
 
 class  SamplesAndTime:
@@ -17,6 +16,33 @@ class  SamplesAndTime:
         self.N = len(samples)
         self.chirpDown()
 
+    def graphSpectrogram(self, fs=None, nfft=32, ax=None, title=None):
+        # Simple spectrogram: time on x, frequency on y, color is power (dB)
+        show = ax is None
+        if ax is None:
+            ax = plt.gca()
+
+        x = np.asarray(self.samples)
+        nfft = min(nfft, len(x))
+        # fs=None -> normalized frequency (cycles/sample)
+        ax.specgram(x, NFFT=nfft, Fs=fs if fs else 1.0,
+                    noverlap=nfft * 3 // 4, cmap="viridis")
+
+        ax.set_xlabel("Time (s)" if fs else "Time (samples)")
+        ax.set_ylabel("Frequency (Hz)" if fs else "Frequency (cycles/sample)")
+        if title:
+            ax.set_title(title)
+        if show:
+            plt.show()
+
+
+    def trunk(self, trunk):
+        n = len(self.time) - trunk
+        self.time = self.time[:n]
+        self.samples = self.samples[:n]
+        self.N = n
+        self.chirpDown()
+
     def graphFrequencyChirp(self, fs=None, ax=None, title=None):
         z = self.samples[1:] * np.conj(self.samples[:-1])
         dt = np.diff(self.time)
@@ -24,7 +50,7 @@ class  SamplesAndTime:
         frequency[np.abs(z) == 0] = 0
         time_mid = self.time[:-1] + dt / 2
 
-        if fs is not None:  # time is in samples -> convert
+        if fs is not None:
             frequency = frequency * fs / 1e6  # MHz
             time_mid = time_mid / fs * 1e6  # us
             xlabel, ylabel = "Time (us)", "Frequency (MHz)"
@@ -74,25 +100,36 @@ class  SamplesAndTime:
     def displaceTime(self,displacement):
         self.k = self.k+displacement
 
-
-
-
-    def getPreamble(self,preamble,preamblelen):
-        iscorrect = False
-        displacement = NaN
+    def getPreamble(self, preamble, threshold_ratio=0.8):
         p = np.asarray(getattr(preamble, "samples", preamble))
-        c = np.correlate(self.samples, p, mode="full")
+        c = np.abs(np.correlate(self.samples, p, mode="full"))
 
         dt = self.time[1] - self.time[0]
         lags = np.arange(-(len(p) - 1), len(self.samples)) * dt
 
-        amp = np.max(c)
-        if amp +0.1 > preamblelen:
-            displacement = np.argmax(lags)
-            idx = np.argmax(c)
-            displacement = lags[idx]
-            iscorrect = True
-        return iscorrect, displacement
+        threshold = threshold_ratio * np.sum(np.abs(p) ** 2)
+        idx = np.argmax(c)
+        if c[idx] > threshold:
+            return True, lags[idx]
+        return False, np.nan
+
+    def getPreambleEnergy(self, preamble, threshold_ratio=0.8):
+        p = np.asarray(getattr(preamble, "samples", preamble))
+        x = self.samples
+
+
+        c = np.abs(np.correlate(x, p, mode="valid"))
+
+
+        win_energy = np.convolve(np.abs(x) ** 2, np.ones(len(p)), mode="valid")
+        norm = np.sqrt(win_energy * np.sum(np.abs(p) ** 2))
+        c = c / np.where(norm == 0, np.inf, norm)
+
+        dt = self.time[1] - self.time[0]
+        idx = np.argmax(c)
+        if c[idx] > threshold_ratio:
+            return True, idx * dt
+        return False, np.nan
 
 
     def graphCorrelationPreamble(self, preamble):
@@ -111,16 +148,3 @@ class  SamplesAndTime:
         plt.grid(True)
         plt.show()
         return lags, c
-class Tester:
-    def __init__(self, functions, sent_symbol, SF):
-            self.functions = functions
-            self.sent = sent_symbol
-            self.SF = SF
-
-    def getBER(self):
-        errors = 0
-        for f in self.functions:
-            f.chirpDown()
-            if not f.isSymbolCorrect(self.sent):
-                errors += 1
-        return errors / len(self.functions)

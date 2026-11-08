@@ -2,8 +2,21 @@ import SDR as SDR
 import numpy as np
 import matplotlib as plt
 
-### Make an array of chirp (same simbol)
 
+
+### Make an array of chirp (same simbol)
+def makeChirpPreamble(SF, noise):
+    M = 2 ** SF * ChirpFunction.resolution
+
+    ups = chirpSeq(SF, [0] * 8, noise, 1.0, 0, 0)
+
+
+    downs = chirpSeq(SF, [0] * 3, noise, -1.0, 0, 0)
+    downs.trunk(3 * M // 4)
+
+    samples = np.concatenate([ups.samples, downs.samples])
+    time = np.arange(len(samples)) / ChirpFunction.resolution
+    return SDR.SamplesAndTime(time, samples)
 
 def chirpSeq(SF, symbols, noise, up, startDelay, endDelay):
     M = 2 ** SF * ChirpFunction.resolution  # samples per symbol

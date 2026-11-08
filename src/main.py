@@ -2,6 +2,7 @@ import Chirp as Chirp
 import SDR as SDR
 import numpy as np
 import matplotlib.pyplot as plt
+import testerLab as Tester
 def test1():
     n = 1000
     SF = 4
@@ -26,29 +27,11 @@ def test3():
     noise = np.sqrt(1 / (2 * 2 ** SF * 10 ** (snr_db / 10)))
     functions = Chirp.chirpFactory(n, SF, symbol, noise, 1.0)
     print(SDR.Tester(functions, symbol, SF).getBER())
-def test4():
-    n = 1000
-    SF = 4
-    symbol = 2
-    N = 2 ** SF
-    snr_list = list(range(-20, 1))   # SNR in dB, linear axis
-    ber_list = []
-    for snr_db in snr_list:
-        noise = np.sqrt(1 / (2 * N * 10 ** (snr_db / 10)))
-        functions = Chirp.chirpFactory(n, SF, symbol, noise, 1.0)
-        ber_list.append(SDR.Tester(functions, symbol, SF).getBER())
-    plt.plot(snr_list, ber_list)
-    plt.xlabel("SNR (dB)")
-    plt.ylabel("Error rate")
-    plt.grid(True, which="both")
-    plt.show()
 
-q = Chirp.chirpSeq(4,[0,0,0,0],0.0,1.0,0,0)
-p =Chirp.chirpSeq(4,[0,0,0],0.0,1.0,0,0)
-(iscorrect,displace)= q.getPreamble(p,3)
-q.graphCorrelationPreamble(p)
-if iscorrect:
-    print("Correct displace:")
-    print(displace)
-else:
-    print("Incorrect")
+
+if __name__ == "__main__":
+    SF = 8
+    M = 2 ** SF
+    symbols = Chirp.makeChirpPreamble(SF, 0.01)
+    symbols.graphSpectrogram(nfft=32, title="Simulated chirps")
+
