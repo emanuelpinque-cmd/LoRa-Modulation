@@ -16,6 +16,33 @@ class  SamplesAndTime:
         #N the number of samples on a chirp is the SF
         self.N = len(samples)
         self.chirpDown()
+
+    def graphFrequencyChirp(self, fs=None, ax=None, title=None):
+        z = self.samples[1:] * np.conj(self.samples[:-1])
+        dt = np.diff(self.time)
+        frequency = np.angle(z) / (2 * np.pi * dt)
+        frequency[np.abs(z) == 0] = 0
+        time_mid = self.time[:-1] + dt / 2
+
+        if fs is not None:  # time is in samples -> convert
+            frequency = frequency * fs / 1e6  # MHz
+            time_mid = time_mid / fs * 1e6  # us
+            xlabel, ylabel = "Time (us)", "Frequency (MHz)"
+        else:
+            xlabel, ylabel = "Time", "Frequency"
+
+        show = ax is None
+        if ax is None:
+            ax = plt.gca()
+        ax.plot(time_mid, frequency, ".-", markersize=3)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        ax.grid(True)
+        if title:
+            ax.set_title(title)
+        if show:
+            plt.show()
+
     def SamplesAndTime(self):
         plt.plot(self.time, self.samples.real)
         plt.show()
