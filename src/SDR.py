@@ -86,6 +86,10 @@ class  SamplesAndTime:
     def isSymbolCorrect(self,symbol):
         return symbol == self.estimateSymbol()
 
+    def rotate(self, k):
+        k = k % self.N
+        self.samples = np.roll(self.samples, -k)
+
     def graphFrequency(self):
         z = self.samples[1:] * np.conj(self.samples[:-1])
         dt = np.diff(self.time)
@@ -101,8 +105,8 @@ class  SamplesAndTime:
         self.k = self.k+displacement
 
     def getPreamble(self, preamble, threshold_ratio=0.8):
-        p = np.asarray(getattr(preamble, "samples", preamble))
-        c = np.abs(np.correlate(self.samples, p, mode="full"))
+
+        c = np.abs(np.correlate(self.samples, preamble, mode="full"))
 
         dt = self.time[1] - self.time[0]
         lags = np.arange(-(len(p) - 1), len(self.samples)) * dt
@@ -140,11 +144,11 @@ class  SamplesAndTime:
         lags = np.arange(-(len(p) - 1), len(self.samples)) * dt
 
         idx = np.argmax(np.abs(c))
-        print(f"Máximo: {np.abs(c)[idx]:.2f} en desfase {lags[idx]:.2f}")
+        print(f"max: {np.abs(c)[idx]:.2f} at tau {lags[idx]:.2f}")
 
         plt.plot(lags, np.abs(c))
-        plt.xlabel("desfase")
-        plt.ylabel("|correlación|")
+        plt.xlabel("tau")
+        plt.ylabel("|correlation|")
         plt.grid(True)
         plt.show()
         return lags, c

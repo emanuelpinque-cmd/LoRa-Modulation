@@ -1,15 +1,17 @@
 import numpy as np
-
-SCALE = 2**13 * np.sqrt(2**8)
+import time
+SCALE = 2**10 * np.sqrt(2**6)
 
 
 class Pluto:
+
+
     def __init__(self, sdr, bw, lo, SF):
         self.sdr = sdr
         self.uri = sdr.uri      # ip comes from the sdr object
         self.bw = bw
         self.lo = lo
-        self.SF = SF
+        self.SF = SFSCALE = 2**13 * np.sqrt(2**4)
         self.sdr.sample_rate = bw
 
 
@@ -20,6 +22,8 @@ class PlutoTx(Pluto):
         self.sdr.tx_lo = lo
         self.sdr.tx_rf_bandwidth = bw
         self.sdr.tx_hardwaregain_chan0 = gain
+
+
 
     def send(self, samples, cyclic=True):
         # WARNING: with cyclic=True the buffer transmits forever.
@@ -64,6 +68,13 @@ class PlutoRx(Pluto):
             print("listing preamble...")
             if found:
                 return rx_samples, lag
+
+    def storage_samples(self, N,sleepingTime):
+        samples = []
+        for i in range(N):
+            samples[i] = self.receive()
+            time.sleep(sleepingTime)
+        return samples
 
     def stop(self):
         self.sdr.rx_destroy_buffer()

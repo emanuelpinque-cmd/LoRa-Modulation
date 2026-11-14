@@ -44,8 +44,11 @@ def chirpFactory(N, SF, symbol, noise, up):
     for _ in range(N):
         functions.append(makeFastChirp(SF, symbol, noise, up))
     return functions
-
-
+def PreambleFactory(N,SF,noise):
+    functions = []
+    for _ in range(N):
+        functions.append(makeChirpPreamble(SF, noise))
+    return functions
 def makeFastChirp(SF, symbol, noise, up):
     a = ChirpFunction(SF, symbol, up)
     b = NoisyChirp(a, noise)
